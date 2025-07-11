@@ -3,21 +3,8 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  AlertTriangle,
-  Users,
-  Clock,
-  CheckCircle,
-  XCircle,
-  MapPin,
-  Phone,
-  User,
-  Shield,
-  Settings,
-  Database,
-} from "lucide-react"
+import { AlertTriangle, Users, Clock, CheckCircle, XCircle, MapPin, Phone, User } from "lucide-react"
 import type { EmergencyRequest, User as UserType } from "@/lib/types"
 
 interface AdminDashboardProps {
@@ -72,12 +59,6 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleSystemAction = async (action: string) => {
-    console.log(`Admin ${user.username} performed action: ${action}`)
-    // In a real app, this would trigger system actions
-    alert(`System action: ${action} - This would be implemented in a real system`)
   }
 
   const getPriorityColor = (priority: string) => {
@@ -151,18 +132,9 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Shield className="h-8 w-8 text-purple-500" />
-            Super Admin Dashboard
-          </h1>
-          <p className="text-muted-foreground">Welcome back, {user.username} - You have full system access</p>
-        </div>
-        <Badge className="bg-purple-500 text-white px-4 py-2">
-          <Shield className="h-4 w-4 mr-2" />
-          SUPER USER
-        </Badge>
+      <div>
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <p className="text-muted-foreground">System overview and management</p>
       </div>
 
       {/* Stats Cards */}
@@ -228,58 +200,10 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
         </Card>
       </div>
 
-      {/* Super Admin Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Super Admin Actions
-          </CardTitle>
-          <CardDescription>System management and administrative functions</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Button
-              onClick={() => handleSystemAction("System Backup")}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Database className="h-4 w-4" />
-              System Backup
-            </Button>
-            <Button
-              onClick={() => handleSystemAction("Clear Cache")}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Settings className="h-4 w-4" />
-              Clear Cache
-            </Button>
-            <Button
-              onClick={() => handleSystemAction("Generate Report")}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <AlertTriangle className="h-4 w-4" />
-              Generate Report
-            </Button>
-            <Button
-              onClick={() => handleSystemAction("System Maintenance")}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Shield className="h-4 w-4" />
-              Maintenance Mode
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       <Tabs defaultValue="requests" className="space-y-4">
         <TabsList>
           <TabsTrigger value="requests">Emergency Requests</TabsTrigger>
-          <TabsTrigger value="users">User Management</TabsTrigger>
-          <TabsTrigger value="system">System Logs</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
 
         <TabsContent value="requests">
@@ -353,8 +277,8 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
         <TabsContent value="users">
           <Card>
             <CardHeader>
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>Manage all users in the system with full admin privileges</CardDescription>
+              <CardTitle>System Users</CardTitle>
+              <CardDescription>Manage all users in the system</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4 max-h-96 overflow-y-auto">
@@ -365,7 +289,6 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
                         <Users className="h-4 w-4" />
                         <span className="font-medium">{user.username}</span>
                         <Badge className={getRoleColor(user.role)}>{user.role}</Badge>
-                        {user.username === "Admin" && <Badge className="bg-purple-500">SUPER USER</Badge>}
                       </div>
                       <span className="text-xs text-muted-foreground">
                         {user.created_at ? new Date(user.created_at).toLocaleDateString() : "N/A"}
@@ -382,52 +305,8 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
                         <p>Role: {user.role}</p>
                       </div>
                     </div>
-
-                    {user.username === "Admin" && (
-                      <div className="mt-2 p-2 bg-purple-50 rounded border">
-                        <p className="text-xs text-purple-800 font-medium">
-                          ✓ Super User - Full system access and administrative privileges
-                        </p>
-                      </div>
-                    )}
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="system">
-          <Card>
-            <CardHeader>
-              <CardTitle>System Logs</CardTitle>
-              <CardDescription>View system activity and logs (Super Admin only)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="border rounded-lg p-4 bg-green-50">
-                  <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="font-medium">System Status: Operational</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">All systems running normally</p>
-                </div>
-
-                <div className="border rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="h-4 w-4 text-blue-500" />
-                    <span className="font-medium">Recent Activity</span>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <p>• Admin login successful - {new Date().toLocaleString()}</p>
-                    <p>• System backup completed - {new Date(Date.now() - 1000 * 60 * 60).toLocaleString()}</p>
-                    <p>• Emergency request processed - {new Date(Date.now() - 1000 * 60 * 30).toLocaleString()}</p>
-                    <p>
-                      • User registration: New responder added -{" "}
-                      {new Date(Date.now() - 1000 * 60 * 60 * 2).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>

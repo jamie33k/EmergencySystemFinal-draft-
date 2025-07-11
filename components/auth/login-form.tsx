@@ -93,21 +93,6 @@ export function LoginForm({ onLogin, onToggleMode }: LoginFormProps) {
               </button>
             </p>
           </div>
-
-          <div className="mt-6 p-4 bg-muted rounded-lg">
-            <p className="text-sm font-medium mb-2">Demo Credentials:</p>
-            <div className="text-xs space-y-1">
-              <p>
-                <strong>Client:</strong> PeterNjiru / PeterNjiru
-              </p>
-              <p>
-                <strong>Responder:</strong> SashaMunene / SashaMunene
-              </p>
-              <p>
-                <strong>Admin:</strong> Admin / Admin
-              </p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
