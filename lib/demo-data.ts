@@ -33,7 +33,7 @@ export let DEMO_USERS = [
 ]
 
 // In-memory storage for emergency requests
-export const emergencyRequests: any[] = []
+export let emergencyRequests: any[] = []
 
 // Helper function to find user by credentials
 export function findUserByCredentials(usernameOrEmail: string, password: string) {
@@ -91,4 +91,35 @@ export function deleteDemoUser(id: string) {
   const initialLength = DEMO_USERS.length
   DEMO_USERS = DEMO_USERS.filter((user) => user.id !== id)
   return DEMO_USERS.length < initialLength // True if a user was deleted
+}
+
+// Helper function to update an emergency request
+export function updateEmergencyRequestInMem(
+  id: string,
+  updates: {
+    type?: string
+    priority?: string
+    description?: string
+    status?: string
+    responder_id?: string
+  },
+) {
+  const requestIndex = emergencyRequests.findIndex((req) => req.id === id)
+  if (requestIndex === -1) {
+    return null
+  }
+
+  emergencyRequests[requestIndex] = {
+    ...emergencyRequests[requestIndex],
+    ...updates,
+    updated_at: new Date().toISOString(),
+  }
+  return emergencyRequests[requestIndex]
+}
+
+// Helper function to delete an emergency request
+export function deleteEmergencyRequestInMem(id: string) {
+  const initialLength = emergencyRequests.length
+  emergencyRequests = emergencyRequests.filter((req) => req.id !== id)
+  return emergencyRequests.length < initialLength // True if a request was deleted
 }

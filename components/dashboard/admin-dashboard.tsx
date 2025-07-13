@@ -4,11 +4,24 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AlertTriangle, Users, Clock, CheckCircle, XCircle, MapPin, Phone, User, Plus, Trash2 } from "lucide-react"
+import {
+  AlertTriangle,
+  Users,
+  Clock,
+  CheckCircle,
+  XCircle,
+  MapPin,
+  Phone,
+  User,
+  Plus,
+  Trash2,
+  Edit,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import type { EmergencyRequest, User as UserType } from "@/lib/types"
 import { AddUserForm } from "./add-user-form"
+import { EditEmergencyForm } from "./edit-emergency-form"
 
 interface AdminDashboardProps {
   user: UserType
@@ -26,6 +39,8 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
   })
   const [loading, setLoading] = useState(true)
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false)
+  const [isEditRequestDialogOpen, setIsEditRequestDialogOpen] = useState(false)
+  const [selectedRequest, setSelectedRequest] = useState<EmergencyRequest | null>(null)
 
   useEffect(() => {
     fetchData()
@@ -92,6 +107,41 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
     } catch (error) {
       console.error("Error deleting user:", error)
       alert("An error occurred while deleting the user.")
+    }
+  }
+
+  const handleEditRequest = (request: EmergencyRequest) => {
+    setSelectedRequest(request)
+    setIsEditRequestDialogOpen(true)
+  }
+
+  const handleRequestUpdated = (updatedRequest: EmergencyRequest) => {
+    setRequests((prevRequests) => prevRequests.map((req) => (req.id === updatedRequest.id ? updatedRequest : req)))
+    setIsEditRequestDialogOpen(false)
+    setSelectedRequest(null)
+    fetchData() // Re-fetch to ensure client/responder data is updated
+  }
+
+  const handleDeleteRequest = async (requestId: string) => {
+    if (!window.confirm("Are you sure you want to delete this emergency request? This action cannot be undone.")) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/emergency/${requestId}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        setRequests((prevRequests) => prevRequests.filter((req) => req.id !== requestId))
+        fetchData() // Re-fetch stats
+      } else {
+        const errorData = await response.json()
+        alert(`Failed to delete request: ${errorData.error || "Unknown error"}`)
+      }
+    } catch (error) {
+      console.error("Error deleting request:", error)
+      alert("An error occurred while deleting the request.")
     }
   }
 
@@ -300,12 +350,34 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
                           )}
                         </div>
                       </div>
+                      <div className="flex gap-2 mt-4 justify-end">
+                        <Button variant="outline" size="sm" onClick={() => handleEditRequest(request)}>
+                          <Edit className="h-4 w-4 mr-1" /> Edit
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={() => handleDeleteRequest(request.id)}>
+                          <Trash2 className="h-4 w-4 mr-1" /> Delete
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
             </CardContent>
           </Card>
+          {selectedRequest && (
+            <Dialog open={isEditRequestDialogOpen} onOpenChange={setIsEditRequestDialogOpen}>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Edit Emergency Request</DialogTitle>
+                </DialogHeader>
+                <EditEmergencyForm
+                  request={selectedRequest}
+                  onSave={handleRequestUpdated}
+                  onCancel={() => setIsEditRequestDialogOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
         </TabsContent>
 
         <TabsContent value="users">

@@ -1,9 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { emergencyRequests, findUserById } from "@/lib/demo-data"
 
-// Simple in-memory storage for demo
-// const emergencyRequests: any[] = []
-
 export async function POST(request: NextRequest) {
   try {
     const requestData = await request.json()
