@@ -4,8 +4,11 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AlertTriangle, Users, Clock, CheckCircle, XCircle, MapPin, Phone, User } from "lucide-react"
+import { AlertTriangle, Users, Clock, CheckCircle, XCircle, MapPin, Phone, User, Plus, Trash2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import type { EmergencyRequest, User as UserType } from "@/lib/types"
+import { AddUserForm } from "./add-user-form"
 
 interface AdminDashboardProps {
   user: UserType
@@ -22,12 +25,14 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
     completed: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false)
 
   useEffect(() => {
     fetchData()
   }, [])
 
   const fetchData = async () => {
+    setLoading(true)
     try {
       // Fetch all emergency requests
       const requestsResponse = await fetch("/api/emergency")
@@ -58,6 +63,35 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
       console.error("Error fetching data:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleUserAdded = (newUser: UserType) => {
+    setUsers((prevUsers) => [...prevUsers, newUser])
+    setIsAddUserDialogOpen(false)
+  }
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId))
+        // Also refetch requests as deleting a user might affect client/responder IDs
+        fetchData()
+      } else {
+        const errorData = await response.json()
+        alert(`Failed to delete user: ${errorData.error || "Unknown error"}`)
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error)
+      alert("An error occurred while deleting the user.")
     }
   }
 
@@ -276,38 +310,62 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
 
         <TabsContent value="users">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle>System Users</CardTitle>
-              <CardDescription>Manage all users in the system</CardDescription>
+              <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-2" /> Add User
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Add New User</DialogTitle>
+                  </DialogHeader>
+                  <AddUserForm onUserAdded={handleUserAdded} onCancel={() => setIsAddUserDialogOpen(false)} />
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {users.map((user) => (
-                  <div key={user.id} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        <span className="font-medium">{user.username}</span>
-                        <Badge className={getRoleColor(user.role)}>{user.role}</Badge>
+              {loading ? (
+                <div className="text-center py-8">Loading...</div>
+              ) : users.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">No users found</div>
+              ) : (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {users.map((user) => (
+                    <div key={user.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          <span className="font-medium">{user.username}</span>
+                          <Badge className={getRoleColor(user.role)}>{user.role}</Badge>
+                        </div>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteUser(user.id)}
+                          disabled={user.role === "admin" && user.id === "3"} // Prevent deleting the main Admin demo user
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Delete user</span>
+                        </Button>
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        {user.created_at ? new Date(user.created_at).toLocaleDateString() : "N/A"}
-                      </span>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-muted-foreground">
-                      <div className="space-y-1">
-                        <p>Email: {user.email}</p>
-                        <p>Phone: {user.phone || "Not provided"}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <p>Location: {user.city || "Not set"}</p>
-                        <p>Role: {user.role}</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-muted-foreground">
+                        <div className="space-y-1">
+                          <p>Email: {user.email}</p>
+                          <p>Phone: {user.phone || "Not provided"}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p>Location: {user.city || "Not set"}</p>
+                          <p>Created: {user.created_at ? new Date(user.created_at).toLocaleDateString() : "N/A"}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

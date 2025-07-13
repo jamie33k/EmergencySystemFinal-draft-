@@ -1,5 +1,5 @@
 // Centralized demo data store
-export const DEMO_USERS = [
+export let DEMO_USERS = [
   {
     id: "1",
     username: "PeterNjiru",
@@ -66,4 +66,29 @@ export function findUserByCredentials(usernameOrEmail: string, password: string)
 // Helper function to get user by ID
 export function findUserById(id: string) {
   return DEMO_USERS.find((u) => u.id === id)
+}
+
+// Helper function to add a new user
+export function addDemoUser(userData: {
+  username: string
+  email: string
+  password: string
+  role: "client" | "responder" | "admin"
+  phone?: string
+}) {
+  const newUser = {
+    id: (Date.now() + Math.random()).toString(), // More robust ID
+    ...userData,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+  DEMO_USERS.push(newUser)
+  return newUser
+}
+
+// Helper function to delete a user
+export function deleteDemoUser(id: string) {
+  const initialLength = DEMO_USERS.length
+  DEMO_USERS = DEMO_USERS.filter((user) => user.id !== id)
+  return DEMO_USERS.length < initialLength // True if a user was deleted
 }
